@@ -1,7 +1,7 @@
 <template>
   	<div class="smart-water">
 		<ui-toolbar brand="SmartWMS" title="Sensor Map" type="colored" textColor="white">
-			<img slot="icon" src="../../public/assets/logo_drop.png" class="icon" />
+			<img slot="icon" src="../../public/logo_drop.png" class="icon" />
 			<ui-button
 				slot="actions"
 				color="primary"
@@ -209,7 +209,7 @@ export default {
 				});
 		},
 		async getSensors(){
-			this.$http.get(host + 'sensors?')
+			this.$http.get(host + 'sensors')
 				.then((response) => {
 					this.markers = []
 					response.body.forEach(e => {
@@ -241,7 +241,7 @@ export default {
 		saveSensor(){
 			this.sensor.loading = true
 			let lat = this.sensor.lat
-			let lng = this.sensor.lng
+			let lng = this.sensor.long
 			if(this.sensor.hasGPS){
 				lat = 48.4797217
 				lng = 7.9212435

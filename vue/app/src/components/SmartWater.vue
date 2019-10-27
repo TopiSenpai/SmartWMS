@@ -292,6 +292,7 @@ export default {
 .search-field {
 	margin-right: 2em;
 	vertical-align: middle;
+	z-index: 1100;
 }
 
 .icon {

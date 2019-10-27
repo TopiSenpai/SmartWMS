@@ -1,7 +1,7 @@
 <template>
     <div class="geo-picker">
         <div class="geo-picker-search">
-            <ui-textbox v-model="searchString" placeholder="Address..." :invalid="!!searchError" :error="searchError" @keydown-enter="searchGeoLocation"/>
+            <multiselect class="search-field" v-model="model" :options="options" placeholder="Search for Sensor..." label="name" track-by="name" @select="selectGeoLocation" @search-change="searchGeoLocation"></multiselect>
             <ui-button @click="searchGeoLocation" color="primary" :disabled="!searchString">Search</ui-button>
         </div>
 
@@ -17,6 +17,7 @@
 
 <script>
 
+import Multiselect from 'vue-multiselect'
 import { UiButton, UiTextbox } from 'keen-ui'
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
 import Vue2LeafletLocatecontrol from 'vue2-leaflet-locatecontrol'
@@ -43,11 +44,14 @@ export default {
 		LMap,
 		LTileLayer,
 		LMarker,
-		Vue2LeafletLocatecontrol
+        Vue2LeafletLocatecontrol,
+        Multiselect
     },
 
     data(){
         return {
+            model: {id: '-1', name: 'Search...'},
+			options: [],
             provider: new OpenStreetMapProvider(),
 			searchString: this.search,
 			searchError: '',
@@ -65,23 +69,27 @@ export default {
     },
     
     methods: {
-        searchGeoLocation(){
-            if(this.searchString === ''){
-                return
-            }
-            this.provider
-                .search({ query: this.searchString })
+        searchGeoLocation(value){
+			this.provider
+                .search({ query: value })
                 .then((response) => { 
-                    if(response.length === 0){
-						this.searchError = 'Keine Sensoren gefunden'
+					if(response.length === 0){
+                        this.searchError = 'Keine Sensoren gefunden'
 						return
 					}
-                    let place = response[0]
-                    this.marker = Lf.latLng(place.y, place.x)
-                    this.center = this.marker
-                    this.zoom = 10
-                    this.searchError = ''
-                });
+                    this.options = []
+                    console.log(response)
+					response.forEach(e => {
+						this.options.push({value: Lf.latLng(e.y, e.x), name: e.label})
+                    });
+				});
+		},
+        selectGeoLocation(place){
+            console.log('PICK GEO LOCATION', place, place.value)     
+            this.marker = place.value
+            this.center = this.marker
+            this.zoom = 10
+            this.searchError = ''
         },
         updateGeoLocation(marker){
             this.marker = marker.latLng
@@ -95,6 +103,16 @@ export default {
 
 <style scoped>
 
+.multiselect__content-wrapper > *{
+	z-index: 11000;
+}
+
+.search-field {
+	margin-right: 2em;
+	vertical-align: middle;
+	z-index: 1100;
+}
+
 .geo-picker-map{
     width: 500px;
     height: 400px;
@@ -105,6 +123,7 @@ export default {
     display: flex;
 	align-items: center;
 	justify-content: space-between;
+
 }
 
 .geo-picker-search .ui-textbox{

@@ -1,7 +1,7 @@
 <template>
   	<div class="smart-water">
 		<ui-toolbar brand="SmartWMS" title="Sensor Map" type="colored" textColor="white">
-			<img slot="icon" src="../assets/logo.png" class="icon" />
+			<img slot="icon" src="../../public/assets/logo_drop.png" class="icon" />
 			<ui-button
 				slot="actions"
 				color="primary"
@@ -15,7 +15,7 @@
 
 			<div class="smart-water-body-map">
 				<div class="flex">
-					<multiselect class="search-field" v-model="model" :options="options" placeholder="Search for Sensor..." label="name" track-by="label" @search-change="searchChange" ></multiselect>
+					<multiselect class="search-field" v-model="model" :options="options" placeholder="Search for Sensor..." label="name" track-by="name" @search-change="searchChange" ></multiselect>
 					
 					<!-- <ui-textbox class="smart-water-search" v-model="searchString" placeholder="Search for Sensors..." @key-enter="searchSensors" /> -->
 					<ui-button color="primary" :disabled="!searchString" @click="searchSensors">Search</ui-button>
@@ -112,16 +112,8 @@ export default {
 
 	data() {
 		return {
-			model: {id: '1', name: 'ertzu'},
-			options: [
-				{id: '1', name: 'ertzu'},
-				{id: '2', name: 'fgh'},
-				{id: '3', name: 'seg'},
-				{id: '4', name: 'vgd'},
-				{id: '5', name: 'ertzuj'},
-				{id: '6', name: 'rghj'},
-				{id: '7', name: 'tzuioliuz'},
-			],
+			model: {id: '-1', name: 'Search...'},
+			options: [],
 			sensor: {
 				loading: false,
 				hasGPS: false,
@@ -173,7 +165,7 @@ export default {
 	},
 	
 	methods: {
-		searchChange(value){
+		async searchChange(value){
 			this.$http.get(host + `sensors?name=${value}`)
 				.then((response) => {
 					if(response.body.length === 0){
@@ -181,7 +173,7 @@ export default {
 					}
 					this.options = []
 					response.body.forEach(e => {
-						this.options.push({id: e.id, name: e.name})
+						this.options.push({value: e.id, name: e.name})
 					});
 				});
 		},
@@ -262,7 +254,6 @@ export default {
 					dev_uid: this.sensor.id
 				})
 				.then((response) => {
-					console.log(response)
 					this.sensor.loading = false
 					this.$refs['register'].close();
 					this.getSensors()
@@ -285,7 +276,7 @@ export default {
 
 <style scoped>
 
-.multiselect__content-wrapper{
+.multiselect__content-wrapper > *{
 	z-index: 11000;
 }
 
@@ -337,7 +328,7 @@ export default {
 }
 
 .smart-wms-body-modal {
-	z-index: 900;
+	z-index: 1200;
 	text-align: center;
 }
 
@@ -348,7 +339,7 @@ export default {
 }
 
 .smart-wms-body-modal-geopicker {
-	z-index: 940;
+	z-index: 1300;
 }
 
 

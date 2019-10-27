@@ -209,7 +209,7 @@ export default {
 				});
 		},
 		async getSensors(){
-			this.$http.get(host + 'sensors')
+			this.$http.get(host + 'sensors?')
 				.then((response) => {
 					this.markers = []
 					response.body.forEach(e => {

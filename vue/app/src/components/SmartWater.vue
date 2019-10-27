@@ -30,7 +30,7 @@
 			</div>
 
 
-			<ui-modal class="smart-wms-body-modal" ref="chart" :title="`Sensor ${dataSource.marker.name} at ${dataSource.marker.locationName}`" size="auto">
+			<ui-modal class="smart-wms-body-modal" ref="chart" :title="`Sensor ${dataSource.marker.name} at ${dataSource.marker.locationName}`" size="auto" @hide="chartModalClosed">
 				<fusioncharts
 					class="smart-wms-body-modal-chart"
 					:type="type"
@@ -112,6 +112,7 @@ export default {
 
 	data() {
 		return {
+			isChartOpen: false,
 			model: {id: '-1', name: 'Search...'},
 			options: [],
 			sensor: {
@@ -165,6 +166,9 @@ export default {
 	},
 	
 	methods: {
+		chartModalClosed(){
+			this.isChartOpen = false
+		},
 		async searchChange(value){
 			this.$http.get(host + `sensors?name=${value}`)
 				.then((response) => {
@@ -225,6 +229,9 @@ export default {
 						data.push({label: e.time, value: e.height})
 					})
 					this.dataSource.data = data
+					if(this.isChartOpen){
+						this.getSensorHistory(id)
+					}
 				});
 		},
 		openChartModal(marker){
@@ -234,6 +241,7 @@ export default {
 			this.dataSource.marker.name = marker.name
 			this.dataSource.marker.locationName = marker.locationName
 			this.$refs['chart'].open();
+			this.isChartOpen = true
 		},
 		openRegisterModal(){
 			this.$refs['register'].open();

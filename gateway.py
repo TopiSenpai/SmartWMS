@@ -41,7 +41,8 @@ if __name__ == '__main__':
                             json_string = json.dumps(data)
                             print(json_string)
 
-                            r = requests.post(url="http://"+ip+":"+http_port+"/sensor/add_measurements", data=json_string)
+                            r = requests.post(url="http://"+ip+":"+http_port+"/sensor/add_measurement", data=json_string)
+                            
 
         except Exception as i:
             print(str(i))

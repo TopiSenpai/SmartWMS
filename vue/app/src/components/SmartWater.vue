@@ -1,23 +1,36 @@
 <template>
   	<div class="smart-water">
-		<ui-toolbar navIcon="menu" brand="SmartWMS" title="Sensor Map" type="colored" textColor="white" :raised="false" :removeNavIcon="true">
-			<div slot="actions">
-				<ui-icon-button
-					color="black"
-					size="large"
-					type="secondary">
-					<add-icon slot="icon" />
-				</ui-icon-button>
-			</div>
+		<ui-toolbar brand="SmartWMS" title="Sensor Map" type="colored" textColor="white">
+			<img slot="icon" src="../assets/logo.png" class="icon" />
+			<ui-button
+				slot="actions"
+				color="primary"
+				type="primary"
+				@click="openRegisterModal">
+				Register New Sensor
+			</ui-button>
 		</ui-toolbar>
 
 		<div class="smart-water-body">
-			<div class="smart-water-search">
-				<ui-textbox type="text" v-model="searchString" :invalid="!!searchError" :error="searchError" placeholder="Adresse, Name, Ort, ..." @keydown-enter="searchSensors" />
-				<ui-button @click="searchSensors">suche</ui-button>
+
+			<div class="smart-water-body-map">
+				<div class="flex">
+					<multiselect class="search-field" v-model="model" :options="options" placeholder="Search for Sensor..." label="name" track-by="label" @search-change="searchChange" ></multiselect>
+					
+					<!-- <ui-textbox class="smart-water-search" v-model="searchString" placeholder="Search for Sensors..." @key-enter="searchSensors" /> -->
+					<ui-button color="primary" :disabled="!searchString" @click="searchSensors">Search</ui-button>
+				</div>
+
+				<div class="smart-water-body-map">
+					<l-map :zoom="map.zoom" :center="map.center">
+						<l-tile-layer :url="map.url" :attribution="map.attribution"></l-tile-layer>
+						<l-marker v-for="marker in markers" :key="marker.id" :icon="map.icon" :lat-lng="marker.pos" title="marker.name" @click="openChartModal(marker)" />
+					</l-map>
+				</div>
 			</div>
 
-			<ui-modal class="smart-wms-body-modal" ref="chart" :title="`Sensor ${dataSource.marker.name} bei ${dataSource.marker.locationName}`" size="auto">
+
+			<ui-modal class="smart-wms-body-modal" ref="chart" :title="`Sensor ${dataSource.marker.name} at ${dataSource.marker.locationName}`" size="auto">
 				<fusioncharts
 					class="smart-wms-body-modal-chart"
 					:type="type"
@@ -26,25 +39,35 @@
 					:dataFormat="dataFormat"
 					:dataSource="dataSource">
 				</fusioncharts>
-
 			</ui-modal>
 
-			<div class="smart-water-body-map">
-				<l-map :zoom="map.zoom" :center="map.center">
-					<l-tile-layer :url="map.url" :attribution="map.attribution"></l-tile-layer>
-					<l-marker v-for="marker in markers" :key="marker.id" :icon="map.icon" :lat-lng="marker.pos" @click="openModal(marker)"></l-marker>
-				</l-map>
-			</div>
+			<ui-modal class="smart-wms-body-modal" ref="register" title="Add new Sensor">
+				<ui-textbox type="text" v-model="sensor.name" label="Name" />
+				<ui-textbox type="text" v-model="sensor.locationName" label="Location Name" />
+				<ui-textbox type="number" v-model="sensor.id" label="Sensor ID" />
+
+				<ui-checkbox v-model="sensor.hasGPS" label="Sensor has GPS"/>
+				<ui-textbox type="number" v-model="sensor.lat" label="Lat" :disabled="sensor.hasGPS" />
+				<ui-textbox type="number" v-model="sensor.long" label="Lng" :disabled="sensor.hasGPS" />
+				<div class="flex">
+					<ui-button @click="saveSensor" color="green" :disabled="isSaveButtonDisabled" :loading="sensor.loading">Save Sensor</ui-button>
+					<ui-button @click="openMap" color="primary" :disabled="sensor.hasGPS">Pick Position</ui-button>
+				</div>
+			</ui-modal>
+
+			<ui-modal class="smart-wms-body-modal-geopicker" ref="geoPicker" title="Pick your Location" size="auto">
+				<geo-picker :search="sensor.locationName" @update="updateGeoLocation"/>
+			</ui-modal>
 		</div>
   	</div>
 </template>
 
 <script>
 
-import Vue from 'vue'
-import { UiTextbox, UiButton, UiIconButton, UiToolbar, UiModal } from 'keen-ui'
+import GeoPicker from './GeoPicker'
+import { UiTextbox, UiButton, UiSelect, UiIconButton, UiIcon, UiToolbar, UiModal, UiCheckbox } from 'keen-ui'
 
-import AddIcon from 'vue-material-design-icons/Add'
+import Multiselect from 'vue-multiselect'
 
 import VueFusionCharts from 'vue-fusioncharts'
 import FusionCharts from 'fusioncharts'
@@ -65,22 +88,49 @@ export default {
 	name: 'smart-water',
 
 	components: {
+		GeoPicker,
 		UiTextbox,
 		UiButton,
+		UiCheckbox,
 		UiIconButton,
 		UiToolbar,
 		UiModal,
-		AddIcon,
 		FusionCharts,
 		VueFusionCharts,
 		LMap,
 		LTileLayer,
 		LMarker,
-		Vue2LeafletLocatecontrol
+		Vue2LeafletLocatecontrol,
+		Multiselect
+	},
+
+	computed: {
+		isSaveButtonDisabled(){
+			return !this.sensor.name || !this.sensor.locationName || !this.sensor.id || (!this.sensor.hasGPS && (!this.sensor.lat || !this.sensor.long))
+		}
 	},
 
 	data() {
 		return {
+			model: {id: '1', name: 'ertzu'},
+			options: [
+				{id: '1', name: 'ertzu'},
+				{id: '2', name: 'fgh'},
+				{id: '3', name: 'seg'},
+				{id: '4', name: 'vgd'},
+				{id: '5', name: 'ertzuj'},
+				{id: '6', name: 'rghj'},
+				{id: '7', name: 'tzuioliuz'},
+			],
+			sensor: {
+				loading: false,
+				hasGPS: false,
+				name: '',
+				locationName: '',
+				id: '',
+				lat: '',
+				long: ''
+			},
 			markers: [],
 			dataSource: {
 				marker: {
@@ -123,11 +173,22 @@ export default {
 	},
 	
 	methods: {
+		searchChange(value){
+			this.$http.get(host + `sensors?name=${value}`)
+				.then((response) => {
+					if(response.body.length === 0){
+						return
+					}
+					this.options = []
+					response.body.forEach(e => {
+						this.options.push({id: e.id, name: e.name})
+					});
+				});
+		},
 		async searchSensorsByPos(lat, long){
 			this.$http.get(host + `sensors?lat=${lat}&long=${long}&dist=${this.distance}`)
 				.then((response) => {
 					if(response.body.length === 0){
-						
 						this.searchError = 'Keine Sensoren gefunden'
 						return
 					}
@@ -144,8 +205,6 @@ export default {
 			this.$http.get(host + `sensors?name=${this.searchString}`)
 				.then((response) => {
 					if(response.body.length === 0){
-						this.provider.sea
-						this.searchSensorsByPos(lat, long)
 						return
 					}
 					this.markers = []
@@ -158,7 +217,7 @@ export default {
 				});
 		},
 		async getSensors(){
-			this.$http.get(host + 'sensors')//dwarvenforge.de
+			this.$http.get(host + 'sensors')
 				.then((response) => {
 					this.markers = []
 					response.body.forEach(e => {
@@ -176,20 +235,83 @@ export default {
 					this.dataSource.data = data
 				});
 		},
-		openModal(marker){
+		openChartModal(marker){
 			this.getSensorHistory(marker.id)
 			this.dataSource.caption = `Sensor ${marker.name}`
 			this.dataSource.marker.id = marker.id
 			this.dataSource.marker.name = marker.name
 			this.dataSource.marker.locationName = marker.locationName
 			this.$refs['chart'].open();
+		},
+		openRegisterModal(){
+			this.$refs['register'].open();
+		},
+		saveSensor(){
+			this.sensor.loading = true
+			let lat = this.sensor.lat
+			let lng = this.sensor.lng
+			if(this.sensor.hasGPS){
+				lat = 48.4797217
+				lng = 7.9212435
+			}
+			this.$http.post(host + 'sensor/create', {
+					latitude: lat,
+					longitude: lng,
+					name: this.sensor.name,
+					loc_name: this.sensor.locationName,
+					dev_uid: this.sensor.id
+				})
+				.then((response) => {
+					console.log(response)
+					this.sensor.loading = false
+					this.$refs['register'].close();
+					this.getSensors()
+				})
+		},
+		openMap(){
+			this.$refs['geoPicker'].open();
+		},
+		updateGeoLocation(location){
+			this.sensor.lat = location.lat
+			this.sensor.long = location.lng
+			this.$refs['geoPicker'].close();	
 		}
 	}
 }
 
 </script>
 
+<style src="vue-multiselect/dist/vue-multiselect.min.css"></style>
+
 <style scoped>
+
+.multiselect__content-wrapper{
+	z-index: 11000;
+}
+
+.search-field {
+	margin-right: 2em;
+	vertical-align: middle;
+}
+
+.icon {
+	height: 2em;
+	width: auto;
+	border-radius: 50%;
+	margin-left: 1em;
+	vertical-align: middle;
+}
+
+.leaflet-top{
+	z-index: 901;
+}
+
+.flex{
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 1em;
+}
 
 .smart-water-body {
 	padding: 1em;
@@ -208,11 +330,10 @@ export default {
 	align-items: center;
 	justify-content: space-between;
 }
-.smart-water-search .ui-textbox{
+.smart-water-search {
 	width: 70%;	
 	margin-right: 1em;
 }
-
 
 .smart-wms-body-modal {
 	z-index: 900;
@@ -224,4 +345,10 @@ export default {
 	width: 800px;
 	height: 500px;
 }
+
+.smart-wms-body-modal-geopicker {
+	z-index: 940;
+}
+
+
 </style>

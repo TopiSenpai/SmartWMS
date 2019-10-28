@@ -18,14 +18,11 @@ services:
     restart: always
     volumes:
     - './vue/app:/app'
-    command: /bin/sh -c "npm run serve"
-#  goapi:
-#    build:
-#      context: ./go/
-#      target: 'build-stage'
-#    container_name: goapi
-#    depends_on:
-#      - web
-#    volumes:
-#    - './go/app:/app'
-#    command: /bin/sh -c "go run ."
+    command: npm run build
+  backend:
+    build:
+      context: ./backend/
+      target: 'build-stage'
+    ports:
+      - "6969:6969"
+    command: /app/src/smartwater-server

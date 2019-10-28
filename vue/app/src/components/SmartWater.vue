@@ -1,5 +1,5 @@
 <template>
-  	<div class="smart-water">
+	<div class="smart-water">
 		<ui-toolbar brand="SmartWMS" title="Sensor Map" type="colored" textColor="white">
 			<img slot="icon" src="../../public/logo_drop.png" class="icon" />
 			<ui-button
@@ -59,29 +59,21 @@
 				<geo-picker :search="sensor.locationName" @update="updateGeoLocation"/>
 			</ui-modal>
 		</div>
-  	</div>
+	</div>
 </template>
 
 <script>
 
 import GeoPicker from './GeoPicker'
-import { UiTextbox, UiButton, UiSelect, UiIconButton, UiIcon, UiToolbar, UiModal, UiCheckbox } from 'keen-ui'
+import { UiTextbox, UiButton, UiToolbar, UiModal, UiCheckbox } from 'keen-ui'
 
 import Multiselect from 'vue-multiselect'
 
-import VueFusionCharts from 'vue-fusioncharts'
-import FusionCharts from 'fusioncharts'
-import Charts from 'fusioncharts/fusioncharts.charts'
-
 import { OpenStreetMapProvider } from 'leaflet-geosearch'
-import Vue2LeafletLocatecontrol from 'vue2-leaflet-locatecontrol'
 import {LMap, LTileLayer, LMarker} from 'vue2-leaflet'
 import Lf from 'leaflet'
-import { Icon } from 'leaflet'
-import 'leaflet/dist/leaflet.css'
 
-const host = 'http://10.16.1.1:6969/'
-const distance = 10000
+const host = 'http://localhost:6969/'
 
 export default {
 
@@ -92,15 +84,11 @@ export default {
 		UiTextbox,
 		UiButton,
 		UiCheckbox,
-		UiIconButton,
 		UiToolbar,
 		UiModal,
-		FusionCharts,
-		VueFusionCharts,
 		LMap,
 		LTileLayer,
 		LMarker,
-		Vue2LeafletLocatecontrol,
 		Multiselect
 	},
 
@@ -152,7 +140,7 @@ export default {
 				center: Lf.latLng(47.413220, -1.219482),
 				url:'http://{s}.tile.osm.org/{z}/{x}/{y}.png',
 				attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
-				icon: L.icon({
+				icon: Lf.icon({
 					iconUrl: require('../assets/marker.png'),
 					iconSize: [30, 30],
 					iconAnchor: [15, 30]
@@ -261,7 +249,7 @@ export default {
 					loc_name: this.sensor.locationName,
 					dev_uid: this.sensor.id
 				})
-				.then((response) => {
+				.then((_) => {
 					this.sensor.loading = false
 					this.$refs['register'].close();
 					this.getSensors()

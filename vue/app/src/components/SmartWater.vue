@@ -249,7 +249,7 @@ export default {
 					loc_name: this.sensor.locationName,
 					dev_uid: this.sensor.id
 				})
-				.then((_) => {
+				.then(() => {
 					this.sensor.loading = false
 					this.$refs['register'].close();
 					this.getSensors()

@@ -18,11 +18,11 @@ services:
     restart: always
     volumes:
     - './vue/app:/app'
-    command: npm run build
+    command: npm run serve
   backend:
     build:
       context: ./backend/
       target: 'build-stage'
     ports:
       - "6969:6969"
-    command: /app/src/smartwater-server
+    command: /app/src/smartwater-server 6969

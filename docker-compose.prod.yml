@@ -1,0 +1,15 @@
+version: '3.7'
+services:
+  vue:
+    build:
+      target: 'build-stage'
+    volumes:
+      - frontend:/app/dist
+    restart: on-failure
+    command: npm run build
+  web:
+    volumes:
+      - frontend:/var/www/vue
+
+volumes:
+  frontend:

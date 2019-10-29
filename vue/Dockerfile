@@ -12,7 +12,8 @@ COPY app/package*.json ./
 # install project dependencies
 RUN npm install
 
-# copy project files and folders to the current working directory (i.e. 'app' folder)
-COPY app .
+FROM build-stage as dev-stage
+
+#CMD npm run serve
 
 EXPOSE 8080

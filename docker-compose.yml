@@ -9,20 +9,24 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./web/www/:/var/www
+      - ./web/www/:/var/www/public
       - ./web/nginx/conf.d/:/etc/nginx/conf.d/
   vue:
     build:
       context: ./vue/
-      target: 'build-stage'
+      target: 'dev-stage'
     restart: always
     volumes:
-    - './vue/app:/app'
+      - './vue/app/src:/app/src'
+      - './vue/app/*:/app'
     command: npm run serve
   backend:
     build:
       context: ./backend/
       target: 'build-stage'
+    restart: always
     ports:
       - "6969:6969"
+    volumes:
+    - './backend/db.sqlite:/app/src/db.sqlite'
     command: /app/src/smartwater-server 6969
